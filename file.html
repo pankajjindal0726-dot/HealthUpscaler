@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HealthUpscaler - Fitness tracking app for Indians in Canada">
+    <title>HealthUpscaler - Your Weight Loss Journey</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#4CAF50">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏃</text></svg>">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css">
+    
+    <!-- Chart.js for graphs -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="loading-screen">
+        <div class="loader"></div>
+        <p>Loading HealthUpscaler...</p>
+    </div>
+
+    <!-- Onboarding Screens -->
+    <div id="onboarding" class="screen active">
+        <!-- Welcome Screen -->
+        <div id="welcome-screen" class="onboarding-step active">
+            <div class="hero">
+                <h1>🏃 HealthUpscaler</h1>
+                <p class="tagline">Simple steps to sustainable weight loss</p>
+                <p class="subtitle">Designed for Indians living in Canada</p>
+            </div>
+            <div class="content">
+                <button class="btn btn-primary btn-large" onclick="app.nextOnboardingStep()">Get Started</button>
+                <p class="credit">Made by Pankaj Jindal</p>
+            </div>
+        </div>
+
+        <!-- Personal Info Screen -->
+        <div id="personal-info-screen" class="onboarding-step">
+            <h2>Tell us about yourself</h2>
+            <form id="personal-info-form" class="form">
+                <div class="form-group">
+                    <label for="name">Name (Optional)</label>
+                    <input type="text" id="name" placeholder="Your name">
+                </div>
+
+                <div class="form-group">
+                    <label for="age">Age *</label>
+                    <input type="number" id="age" required min="15" max="100" placeholder="25">
+                </div>
+
+                <div class="form-group">
+                    <label>Sex *</label>
+                    <div class="radio-group">
+                        <label class="radio-label">
+                            <input type="radio" name="sex" value="male" required>
+                            <span>Male</span>
+                        </label>
+                        <label class="radio-label">
+                            <input type="radio" name="sex" value="female" required>
+                            <span>Female</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="height">Height *</label>
+                    <div class="input-group">
+                        <input type="number" id="height" required min="120" max="250" placeholder="170">
+                        <select id="height-unit">
+                            <option value="cm">cm</option>
+                            <option value="inches">inches</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="weight">Current Weight *</label>
+                    <div class="input-group">
+                        <input type="number" id="weight" required min="30" max="300" step="0.1" placeholder="75">
+                        <select id="weight-unit">
+                            <option value="kg">kg</option>
+                            <option value="lbs">lbs</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="goal-weight">Goal Weight *</label>
+                    <div class="input-group">
+                        <input type="number" id="goal-weight" required min="30" max="300" step="0.1" placeholder="70">
+                        <span class="unit-display">kg</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Activity Level *</label>
+                    <select id="activity-level" required>
+                        <option value="">Select activity level</option>
+                        <option value="sedentary">Sedentary (little or no exercise)</option>
+                        <option value="light">Lightly Active (exercise 1-3 days/week)</option>
+                        <option value="moderate">Moderately Active (exercise 3-5 days/week)</option>
+                        <option value="active">Very Active (exercise 6-7 days/week)</option>
+                        <option value="extra">Extra Active (physical job + exercise)</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-large">Continue</button>
+            </form>
+        </div>
+
+        <!-- Goals Screen -->
+        <div id="goals-screen" class="onboarding-step">
+            <h2>Your Daily Goals</h2>
+            <div class="goals-summary">
+                <div class="goal-card">
+                    <h3>Daily Calories</h3>
+                    <p class="goal-value" id="daily-calories-goal">0</p>
+                    <p class="goal-desc">Based on your profile</p>
+                </div>
+                <div class="goal-card">
+                    <h3>Daily Steps</h3>
+                    <input type="number" id="steps-goal" value="10000" min="3000" max="30000" step="1000">
+                    <p class="goal-desc">Recommended: 10,000</p>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-large" onclick="app.completeOnboarding()">Start My Journey!</button>
+        </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="main-app" class="screen">
+        <!-- Header -->
+        <header class="header">
+            <button class="menu-btn" onclick="app.toggleMenu()">☰</button>
+            <h1 class="app-title">HealthUpscaler</h1>
+            <button class="settings-btn" onclick="app.showSettings()">⚙️</button>
+        </header>
+
+        <!-- Navigation Menu (Sidebar) -->
+        <nav id="menu" class="menu">
+            <div class="menu-header">
+                <h3>Menu</h3>
+                <button onclick="app.toggleMenu()">✕</button>
+            </div>
+            <ul class="menu-list">
+                <li onclick="app.showTab('home')">🏠 Home</li>
+                <li onclick="app.showTab('progress')">📊 Progress</li>
+                <li onclick="app.showTab('meals')">🥗 Meals</li>
+                <li onclick="app.showTab('tips')">💡 Tips</li>
+                <li onclick="app.showTab('profile')">👤 Profile</li>
+            </ul>
+            <div class="menu-footer">
+                <p>Made by Pankaj Jindal</p>
+            </div>
+        </nav>
+
+        <!-- Tab Content -->
+        <main class="main-content">
+            <!-- Home Tab -->
+            <div id="home-tab" class="tab active">
+                <div class="welcome-banner">
+                    <h2>Hello, <span id="user-name-display">there</span>! 👋</h2>
+                    <p id="current-date"></p>
+                </div>
+
+                <!-- Calorie Summary Card -->
+                <div class="card calorie-card">
+                    <h3>Today's Calories</h3>
+                    <div class="calorie-ring">
+                        <svg viewBox="0 0 200 200">
+                            <circle cx="100" cy="100" r="80" class="ring-bg"/>
+                            <circle cx="100" cy="100" r="80" class="ring-progress" id="calorie-ring"/>
+                        </svg>
+                        <div class="ring-text">
+                            <span class="consumed" id="calories-consumed">0</span>
+                            <span class="separator">/</span>
+                            <span class="goal" id="calories-goal">0</span>
+                        </div>
+                    </div>
+                    <div class="calorie-breakdown">
+                        <div class="calorie-stat">
+                            <span class="label">Remaining</span>
+                            <span class="value" id="calories-remaining">0</span>
+                        </div>
+                        <div class="calorie-stat">
+                            <span class="label">Burned</span>
+                            <span class="value" id="calories-burned">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Steps Card -->
+                <div class="card steps-card">
+                    <h3>Today's Steps</h3>
+                    <div class="steps-display">
+                        <span class="steps-count" id="steps-count">0</span>
+                        <span class="steps-goal">/ <span id="steps-goal-display">10000</span></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="steps-progress"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="app.addSteps()">+ Add Steps</button>
+                </div>
+
+                <!-- Quick Actions -->
+                <div class="quick-actions">
+                    <button class="action-btn" onclick="app.showTab('meals')">
+                        <span class="icon">🥗</span>
+                        <span>Log Meal</span>
+                    </button>
+                    <button class="action-btn" onclick="app.logWeight()">
+                        <span class="icon">⚖️</span>
+                        <span>Log Weight</span>
+                    </button>
+                    <button class="action-btn" onclick="app.showTab('progress')">
+                        <span class="icon">📊</span>
+                        <span>View Progress</span>
+                    </button>
+                </div>
+
+                <!-- Daily Tip -->
+                <div class="card tip-card">
+                    <h3>💡 Today's Tip</h3>
+                    <p id="daily-tip"></p>
+                </div>
+            </div>
+
+            <!-- Progress Tab -->
+            <div id="progress-tab" class="tab">
+                <h2>Your Progress</h2>
+                
+                <!-- Weight Chart -->
+                <div class="card">
+                    <h3>Weight Trend</h3>
+                    <canvas id="weight-chart"></canvas>
+                </div>
+
+                <!-- Calorie Chart -->
+                <div class="card">
+                    <h3>Weekly Calories</h3>
+                    <canvas id="calorie-chart"></canvas>
+                </div>
+
+                <!-- Stats Summary -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Current Weight</h4>
+                        <p class="stat-value" id="current-weight-stat">--</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Weight Lost</h4>
+                        <p class="stat-value" id="weight-lost-stat">--</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Goal Weight</h4>
+                        <p class="stat-value" id="goal-weight-stat">--</p>
+                    </div>
+                    <div class="stat-card">
+                        <h4>To Go</h4>
+                        <p class="stat-value" id="to-go-stat">--</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Meals Tab -->
+            <div id="meals-tab" class="tab">
+                <h2>Food Diary</h2>
+                
+                <!-- Add Meal Form -->
+                <div class="card">
+                    <h3>Log a Meal</h3>
+                    <form id="meal-form" class="form">
+                        <div class="form-group">
+                            <label>Meal Type</label>
+                            <div class="btn-group">
+                                <button type="button" class="btn btn-outline" data-meal="breakfast">Breakfast</button>
+                                <button type="button" class="btn btn-outline" data-meal="lunch">Lunch</button>
+                                <button type="button" class="btn btn-outline" data-meal="dinner">Dinner</button>
+                                <button type="button" class="btn btn-outline" data-meal="snack">Snack</button>
+                            </div>
+                            <input type="hidden" id="meal-type" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="food-search">Search Food</label>
+                            <input type="text" id="food-search" placeholder="Search for food...">
+                            <div id="food-results" class="food-results"></div>
+                        </div>
+
+                        <div id="selected-foods" class="selected-foods"></div>
+
+                        <button type="submit" class="btn btn-primary">Log Meal</button>
+                    </form>
+                </div>
+
+                <!-- Today's Meals -->
+                <div class="card">
+                    <h3>Today's Meals</h3>
+                    <div id="meals-list" class="meals-list"></div>
+                </div>
+
+                <!-- Popular Foods (Quick Add) -->
+                <div class="card">
+                    <h3>Popular Indian Foods</h3>
+                    <div class="food-grid" id="popular-foods"></div>
+                </div>
+            </div>
+
+            <!-- Tips Tab -->
+            <div id="tips-tab" class="tab">
+                <h2>Health Tips & Guides</h2>
+                
+                <div class="tips-categories">
+                    <button class="category-btn active" data-category="all">All</button>
+                    <button class="category-btn" data-category="nutrition">Nutrition</button>
+                    <button class="category-btn" data-category="exercise">Exercise</button>
+                    <button class="category-btn" data-category="lifestyle">Lifestyle</button>
+                </div>
+
+                <div id="tips-list" class="tips-list"></div>
+            </div>
+
+            <!-- Profile Tab -->
+            <div id="profile-tab" class="tab">
+                <h2>Your Profile</h2>
+                
+                <div class="card profile-card">
+                    <div class="profile-header">
+                        <div class="profile-avatar">👤</div>
+                        <h3 id="profile-name">User</h3>
+                    </div>
+
+                    <div class="profile-stats">
+                        <div class="profile-stat">
+                            <span class="label">Age</span>
+                            <span class="value" id="profile-age">--</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="label">Height</span>
+                            <span class="value" id="profile-height">--</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="label">BMI</span>
+                            <span class="value" id="profile-bmi">--</span>
+                        </div>
+                        <div class="profile-stat">
+                            <span class="label">Activity</span>
+                            <span class="value" id="profile-activity">--</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Daily Goals</h3>
+                    <div class="goals-edit">
+                        <div class="goal-edit-item">
+                            <label>Daily Calorie Goal</label>
+                            <p id="profile-calorie-goal" class="goal-value">-- kcal</p>
+                            <p class="goal-note">Based on your BMR and activity level</p>
+                        </div>
+                        <div class="goal-edit-item">
+                            <label for="profile-steps-goal">Daily Steps Goal</label>
+                            <input type="number" id="profile-steps-goal" min="3000" max="30000" step="1000">
+                            <button class="btn btn-secondary" onclick="app.updateStepsGoal()">Update</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3>Data Management</h3>
+                    <button class="btn btn-secondary" onclick="app.exportData()">Export Data</button>
+                    <button class="btn btn-danger" onclick="app.resetApp()">Reset App</button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Bottom Navigation -->
+        <nav class="bottom-nav">
+            <button class="nav-item active" data-tab="home" onclick="app.showTab('home')">
+                <span class="icon">🏠</span>
+                <span class="label">Home</span>
+            </button>
+            <button class="nav-item" data-tab="progress" onclick="app.showTab('progress')">
+                <span class="icon">📊</span>
+                <span class="label">Progress</span>
+            </button>
+            <button class="nav-item" data-tab="meals" onclick="app.showTab('meals')">
+                <span class="icon">🥗</span>
+                <span class="label">Meals</span>
+            </button>
+            <button class="nav-item" data-tab="tips" onclick="app.showTab('tips')">
+                <span class="icon">💡</span>
+                <span class="label">Tips</span>
+            </button>
+            <button class="nav-item" data-tab="profile" onclick="app.showTab('profile')">
+                <span class="icon">👤</span>
+                <span class="label">Profile</span>
+            </button>
+        </nav>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-overlay" class="modal-overlay" onclick="app.closeModal()"></div>
+    
+    <!-- Weight Log Modal -->
+    <div id="weight-modal" class="modal">
+        <div class="modal-header">
+            <h3>Log Weight</h3>
+            <button onclick="app.closeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+            <form id="weight-form">
+                <div class="form-group">
+                    <label for="weight-value">Weight</label>
+                    <div class="input-group">
+                        <input type="number" id="weight-value" step="0.1" required>
+                        <span id="weight-unit-display">kg</span>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/food-database.js"></script>
+    <script src="js/calculator.js"></script>
+    <script src="js/charts.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
